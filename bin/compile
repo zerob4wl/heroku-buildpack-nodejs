@@ -19,13 +19,6 @@ CACHE_DIR=${2:-}
 ENV_DIR=${3:-}
 BP_DIR=$(cd $(dirname ${0:-}); cd ..; pwd)
 
-mkdir -p "$BUILD_DIR/.heroku/node/"
-cd $BUILD_DIR
-export PATH="$BUILD_DIR/.heroku/node/bin:$BUILD_DIR/.heroku/yarn/bin":$PATH
-
-LOG_FILE=$(mktemp -t node-build-log.XXXXX)
-echo "" > "$LOG_FILE"
-
 ### Load dependencies
 
 source $BP_DIR/lib/output.sh
@@ -35,6 +28,11 @@ source $BP_DIR/lib/environment.sh
 source $BP_DIR/lib/binaries.sh
 source $BP_DIR/lib/cache.sh
 source $BP_DIR/lib/dependencies.sh
+
+export PATH="$BUILD_DIR/.heroku/node/bin:$BUILD_DIR/.heroku/yarn/bin":$PATH
+
+LOG_FILE=$(mktemp -t node-build-log.XXXXX)
+echo "" > "$LOG_FILE"
 
 ### Handle errors
 
@@ -56,6 +54,7 @@ trap 'handle_failure' ERR
 
 ### Failures that should be caught immediately
 
+fail_dot_heroku_node "$BUILD_DIR"
 fail_invalid_package_json "$BUILD_DIR"
 warn_prebuilt_modules "$BUILD_DIR"
 warn_missing_package_json "$BUILD_DIR"
@@ -70,6 +69,9 @@ create_env() {
 }
 
 header "Creating runtime environment"
+
+mkdir -p "$BUILD_DIR/.heroku/node/"
+cd $BUILD_DIR
 create_env # can't pipe the whole thing because piping causes subshells, preventing exports
 list_node_config | output "$LOG_FILE"
 
