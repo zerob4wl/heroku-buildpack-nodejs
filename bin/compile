@@ -9,7 +9,7 @@ unset GIT_DIR     # Avoid GIT_DIR leak from previous build steps
 
 ### Constants
 
-DEFAULT_CACHE="node_modules bower_components"
+DEFAULT_CACHE="node_modules bower_components jspm_package"
 BPLOG_PREFIX="buildpack.nodejs"
 
 ### Configure directories
@@ -157,6 +157,11 @@ build_dependencies() {
     npm_rebuild "$BUILD_DIR"
   else
     npm_node_modules "$BUILD_DIR"
+  fi
+
+  if [ -f $BUILD_DIR/node_modules/.bin/jspm ]; then
+    echo "Install jspm dependencies"
+    $BUILD_DIR/node_modules/.bin/jspm install
   fi
 
   mtime "modules.time.cache.$cache_status" "${start}"
